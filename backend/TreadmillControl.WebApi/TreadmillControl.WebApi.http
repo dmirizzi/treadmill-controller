@@ -1,0 +1,6 @@
+@TreadmillControl.WebApi_HostAddress = http://localhost:5227
+
+GET {{TreadmillControl.WebApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

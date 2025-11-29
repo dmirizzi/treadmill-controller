@@ -1,0 +1,27 @@
+<div class="app" style="padding: 1rem; font-family: system-ui, sans-serif;">
+  <h1>{{ title }}</h1>
+
+  <div class="controls" style="margin-bottom: 1rem;">
+    <button (click)="onConnect()">Connect</button>
+    <button (click)="onDisconnect()">Disconnect</button>
+    <button (click)="onStart()">Start</button>
+    <button (click)="onStop()">Stop</button>
+
+    <div class="speed" style="margin-top: 0.5rem;">
+      <label>
+        Speed (km/h):
+        <input type="number" [(ngModel)]="speedInput" step="0.1" />
+      </label>
+      <button (click)="onSetSpeed()">Set Speed</button>
+    </div>
+  </div>
+
+  <button (click)="refresh()">Refresh status</button>
+
+  <div class="status" *ngIf="status as s" style="margin-top: 1rem;">
+    <h2>Status</h2>
+    <p>Connected: {{ s.isConnected }}</p>
+    <p>Running: {{ s.isRunning }}</p>
+    <p>Current Speed: {{ s.currentSpeedKmh }} km/h</p>
+  </div>
+</div>
