@@ -3,7 +3,7 @@ from bleak import BleakScanner, BleakClient
 
 # ===== CONFIG =====
 
-DEVICE_NAME_SUBSTR = "LJJ-sports"   # substring of the advertised name
+DEVICE_NAME_SUBSTR = "LJJ-"   # substring of the advertised name
 
 # From your characteristics dump:
 CONTROL_UUID = "0000ffb2-0000-1000-8000-00805f9b34fb"  # write-without-response

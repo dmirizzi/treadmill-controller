@@ -3,7 +3,7 @@ using TreadmillControl.Core;
 var builder = WebApplication.CreateBuilder(args);
 
 // Register our treadmill service
-builder.Services.AddSingleton<ITreadmillService, DummyTreadmillService>();
+builder.Services.AddSingleton<ITreadmillService, BluetoothTreadmillService>();
 
 var app = builder.Build();
 
