@@ -1,4 +1,5 @@
 import asyncio
+import string
 from bleak import BleakScanner, BleakClient
 
 # ===== CONFIG =====
@@ -35,6 +36,64 @@ def notification_handler(sender: int, data: bytearray):
     print(f"[NOTIFY] sender={sender} data={hex_str}")
 
 
+# ===== UTILITIES FOR DEBUG OUTPUT =====
+
+def _to_printable_ascii(data: bytes) -> str:
+    if not data:
+        return ""
+    # Only show ASCII if all bytes are printable-ish or whitespace
+    if all(chr(b) in string.printable for b in data):
+        try:
+            return data.decode("ascii", errors="replace")
+        except Exception:
+            return ""
+    return ""
+
+
+def _fmt_ints(data: bytes) -> str:
+    """Try to show a few integer interpretations of small buffers."""
+    n = len(data)
+    parts = []
+    if n in (1, 2, 4):
+        le = int.from_bytes(data, byteorder="little", signed=False)
+        be = int.from_bytes(data, byteorder="big", signed=False)
+        parts.append(f"u{8*n}-LE={le}")
+        parts.append(f"u{8*n}-BE={be}")
+    return ", ".join(parts)
+
+
+async def read_all_readable_characteristics(client: BleakClient):
+    """
+    Iterate all services/characteristics and read every characteristic
+    that has the 'read' property. Print useful debug info.
+    """
+    print("\n=== Reading all readable characteristics ===")
+    for service in client.services:
+        print(f"[Service] {service.uuid}")
+        for char in service.characteristics:
+            if "read" not in char.properties:
+                continue
+
+            handle = getattr(char, "handle", None)
+            print(f"  [Char] UUID={char.uuid} handle={handle} props={char.properties}")
+
+            try:
+                value = await client.read_gatt_char(char)
+            except Exception as e:
+                print(f"    [READ ERROR] {e}")
+                continue
+
+            hex_str = " ".join(f"{b:02X}" for b in value)
+            ascii_str = _to_printable_ascii(value)
+            ints_str = _fmt_ints(value)
+
+            print(f"    len={len(value)}  hex={hex_str}")
+            if ascii_str:
+                print(f"    ascii='{ascii_str}'")
+            if ints_str:
+                print(f"    ints: {ints_str}")
+
+
 # ===== MAIN =====
 
 async def main():
@@ -67,6 +126,9 @@ async def main():
                 handle = getattr(char, "handle", None)
                 print(f"  [Char] UUID={char.uuid} handle={handle} props={char.properties}")
 
+        # ---- NEW: read all readable characteristics ----
+        await read_all_readable_characteristics(client)
+
         # Find the characteristics by UUID
         control_char = client.services.get_characteristic(CONTROL_UUID)
         data_char    = client.services.get_characteristic(DATA_UUID)
@@ -88,34 +150,36 @@ async def main():
             print("No data characteristic found (skipping notifications).")
 
         # ==== SEND COMMANDS ====
+        run_movement_test = False
 
-        print("\n=== Sending START ===")
-        await client.write_gatt_char(control_char, START_CMD, response=False)
-        await asyncio.sleep(2)
+        if run_movement_test:
+            print("\n=== Sending START ===")
+            await client.write_gatt_char(control_char, START_CMD, response=False)
+            await asyncio.sleep(2)
 
-        # Set speed: 2.0 km/h
-        cmd = build_speed_command(2.0)
-        print("\n=== Setting speed to 2.0 km/h ===")
-        print("Bytes:", " ".join(f"{b:02X}" for b in cmd))
-        await client.write_gatt_char(control_char, cmd, response=False)
-        await asyncio.sleep(5)
+            # Set speed: 2.0 km/h
+            cmd = build_speed_command(2.0)
+            print("\n=== Setting speed to 2.0 km/h ===")
+            print("Bytes:", " ".join(f"{b:02X}" for b in cmd))
+            await client.write_gatt_char(control_char, cmd, response=False)
+            await asyncio.sleep(5)
 
-        # Set speed: 4.0 km/h
-        cmd = build_speed_command(4.0)
-        print("\n=== Setting speed to 4.0 km/h ===")
-        await client.write_gatt_char(control_char, cmd, response=False)
-        await asyncio.sleep(5)
+            # Set speed: 4.0 km/h
+            cmd = build_speed_command(4.0)
+            print("\n=== Setting speed to 4.0 km/h ===")
+            await client.write_gatt_char(control_char, cmd, response=False)
+            await asyncio.sleep(5)
 
-        # Set speed: 1.5 km/h
-        cmd = build_speed_command(1.5)
-        print("\n=== Setting speed to 1.5 km/h ===")
-        await client.write_gatt_char(control_char, cmd, response=False)
-        await asyncio.sleep(5)
+            # Set speed: 1.5 km/h
+            cmd = build_speed_command(1.5)
+            print("\n=== Setting speed to 1.5 km/h ===")
+            await client.write_gatt_char(control_char, cmd, response=False)
+            await asyncio.sleep(5)
 
-        # Stop
-        print("\n=== Sending STOP ===")
-        await client.write_gatt_char(control_char, STOP_CMD, response=False)
-        await asyncio.sleep(3)
+            # Stop
+            print("\n=== Sending STOP ===")
+            await client.write_gatt_char(control_char, STOP_CMD, response=False)
+            await asyncio.sleep(3)
 
         if data_char:
             await client.stop_notify(data_char.uuid)

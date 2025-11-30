@@ -44,7 +44,8 @@ class TreadmillController:
         self._min_speed_kmh = 0.0
         self._max_speed_kmh = 0.0
 
-        self.status_queue = status_queue
+        self._status_queue = status_queue
+        self._monitor_task: Optional[asyncio.Task] = None
 
     # -------- internal helpers --------
 
@@ -110,6 +111,11 @@ class TreadmillController:
                     logger.warning("Could not enable notifications on treadmill (FFB1)", exc_info=True)
 
                 self._client = client
+
+                # Start background connection monitor
+                if self._monitor_task is None or self._monitor_task.done():
+                    self._monitor_task = asyncio.create_task(self._monitor_connection(client))
+
                 return  # success, we're done
 
             except Exception as e:
@@ -132,6 +138,30 @@ class TreadmillController:
                 else:
                     # second attempt also failed -> give up
                     raise RuntimeError("Failed to connect to treadmill after adapter reset") from e
+
+    async def _monitor_connection(self, client: BleakClient) -> None:
+        """
+        Background task: watch a specific BleakClient instance and
+        update state when it disconnects.
+        """
+        try:
+            # Poll once per second; adjust if you want it faster/slower
+            while client.is_connected:
+                await asyncio.sleep(0.5)
+        except asyncio.CancelledError:
+            # Task cancelled (e.g. on manual disconnect); just exit
+            return
+
+        # If this is still the active client, clear state
+        if self._client is client:
+            logger.info("Treadmill BLE client disconnected (monitor)")
+            self._client = None
+            self._is_running = False
+            self._current_speed_kmh = 0.0
+
+            # Push a final "disconnected" status so UI updates
+            self._push_status_update()
+
 
     async def _reset_bluetooth_adapter(self) -> None:
         """
@@ -223,14 +253,21 @@ class TreadmillController:
                         self._min_speed_kmh,
                         self._max_speed_kmh)
         
-        if self.status_queue is not None:
-            # Push updated status to the queue for SSE
-            loop = asyncio.get_running_loop()
-            status = self.get_status()
-            loop.call_soon_threadsafe(self.status_queue.put_nowait, status)
+        # Push updated status to the queue for SSE
+        self._push_status_update()
 
         self._is_running = self._current_speed_kmh > 0.0
         logger.debug("Notification from treadmill: %s\n", data.hex())
+
+    def _push_status_update(self) -> None:
+        if self._status_queue is not None:
+            status = self.get_status()
+            # We are already in the event loop thread when Bleak calls us,
+            # so putting into the queue directly is fine.
+            try:
+                self._status_queue.put_nowait(status)
+            except asyncio.QueueFull:
+                logger.warning("Status queue is full, dropping update")
 
     async def _send_command(self, payload: bytes) -> None:
         if not self._client or not self._client.is_connected:
@@ -250,6 +287,10 @@ class TreadmillController:
 
     async def disconnect(self) -> None:
         async with self._lock:
+            if self._monitor_task is not None:
+                self._monitor_task.cancel()
+                self._monitor_task = None
+
             if self._client:
                 try:
                     # Try to stop notifications first (best effort)
