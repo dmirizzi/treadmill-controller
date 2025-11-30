@@ -1,29 +1,147 @@
-<div class="app" style="padding: 1rem; font-family: system-ui, sans-serif;">
-  <h1>{{ title }}</h1>
-
-  <div class="controls" style="margin-bottom: 1rem;">
-    <button (click)="onConnect()">Connect</button>
-    <button (click)="onDisconnect()">Disconnect</button>
-    <button (click)="onStart()">Start</button>
-    <button (click)="onStop()">Stop</button>
-
-    <div class="speed" style="margin-top: 0.5rem;">
-      <label>
-        Speed (km/h):
-        <input type="number" [(ngModel)]="speedInput" step="0.1" />
-      </label>
-      <button (click)="onSetSpeed()">Set Speed</button>
+<div class="app-root">
+  <!-- Top bar -->
+  <header class="app-header">
+    <div class="title-group">
+      <div class="app-title">{{ title }}</div>
+      <div class="subtitle">Home treadmill</div>
     </div>
-  </div>
 
-  <div class="status" *ngIf="status as s" style="margin-top: 1rem;">
-    <h2>Status</h2>
-    <p>Connected: {{ s.isConnected }}</p>
-    <p>Running: {{ s.isRunning }}</p>
-    <p>Current Speed: {{ s.currentSpeedKmh }} km/h</p>
-    <p>Elapsed Time: {{ s.elapsedTimeSeconds }} seconds</p>
-    <p>Burned Calories: {{ s.burnedCalories }} kcal</p>
-    <p>Total Distance: {{ s.totalDistanceKm }} km</p>
-    <p>Speed Range: {{ s.minSpeedKmh }} km/h - {{ s.maxSpeedKmh }} km/h</p>
-  </div>
+    <button
+      class="chip-button"
+      [class.chip--connected]="isConnected"
+      [disabled]="isConnecting || isConnected"
+      (click)="onConnect()">
+      <span class="chip-dot" *ngIf="isConnected"></span>
+      <span *ngIf="isConnected">Connected</span>
+      <span *ngIf="!isConnected && !isConnecting">Connect</span>
+      <span *ngIf="isConnecting">Connecting…</span>
+    </button>
+  </header>
+
+  <!-- Content when we have status -->
+  <main class="app-main" *ngIf="status as s; else emptyState">
+    <!-- Primary card: speed + start/stop -->
+    <section class="card card--primary">
+      <div class="card-header">
+        <div class="card-title">Current speed</div>
+        <div class="status-pills">
+          <span
+            class="pill"
+            [class.pill--on]="isRunning">
+            {{ isRunning ? 'Running' : 'Stopped' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="speed-display">
+        <span class="speed-value">
+          {{ s.currentSpeedKmh | number:'1.1-1' }}
+        </span>
+        <span class="speed-unit">km/h</span>
+      </div>
+
+      <div class="primary-actions">
+        <button
+          class="btn btn--primary"
+          (click)="onStart()"
+          [disabled]="!isConnected || isRunning || isSendingCommand">
+          Start
+        </button>
+
+        <button
+          class="btn btn--secondary"
+          (click)="onStop()"
+          [disabled]="!isConnected || !isRunning || isSendingCommand">
+          Stop
+        </button>
+      </div>
+
+      <div class="connection-note" *ngIf="!isConnected">
+        Connect your treadmill to control speed and see live stats.
+      </div>
+    </section>
+
+    <!-- Target speed card -->
+    <section class="card">
+      <div class="card-header">
+        <div class="card-title">Target speed</div>
+        <div class="range-label">
+          {{ s.minSpeedKmh | number:'1.1-1' }} – {{ s.maxSpeedKmh | number:'1.1-1' }} km/h
+        </div>
+      </div>
+
+      <div class="target-speed-input">
+        <div class="numeric-input">
+          <input
+            type="number"
+            [(ngModel)]="speedInput"
+            [min]="s.minSpeedKmh"
+            [max]="s.maxSpeedKmh"
+            step="0.1"
+            [disabled]="!isConnected" />
+          <span class="unit">km/h</span>
+        </div>
+
+        <input
+          type="range"
+          [(ngModel)]="speedInput"
+          [min]="s.minSpeedKmh"
+          [max]="s.maxSpeedKmh"
+          step="0.1"
+          [disabled]="!isConnected" />
+
+        <button
+          class="btn btn--fullwidth"
+          (click)="onSetSpeed()"
+          [disabled]="!isConnected || isSendingCommand">
+          Set speed
+        </button>
+      </div>
+    </section>
+
+    <!-- Metrics grid -->
+    <section class="metrics-grid">
+      <article class="metric-card">
+        <div class="metric-label">Time</div>
+        <div class="metric-value">{{ formatTime(s.elapsedTimeSeconds) }}</div>
+      </article>
+
+      <article class="metric-card">
+        <div class="metric-label">Distance</div>
+        <div class="metric-value">
+          {{ s.totalDistanceKm | number:'1.2-2' }}
+          <span class="metric-unit">km</span>
+        </div>
+      </article>
+
+      <article class="metric-card">
+        <div class="metric-label">Calories</div>
+        <div class="metric-value">
+          {{ s.burnedCalories | number:'1.0-0' }}
+          <span class="metric-unit">kcal</span>
+        </div>
+      </article>
+
+      <article class="metric-card metric-card--muted">
+        <div class="metric-label">Speed range</div>
+        <div class="metric-value">
+          {{ s.minSpeedKmh | number:'1.1-1' }} – {{ s.maxSpeedKmh | number:'1.1-1' }}
+          <span class="metric-unit">km/h</span>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <!-- Empty / not yet connected state -->
+  <ng-template #emptyState>
+    <main class="app-main app-main--empty">
+      <div class="empty-card">
+        <div class="empty-title">Ready when you are</div>
+        <p class="empty-text">
+          Turn on your treadmill and tap <strong>Connect</strong>
+          to get live speed, distance, calories and more.
+        </p>
+      </div>
+    </main>
+  </ng-template>
 </div>

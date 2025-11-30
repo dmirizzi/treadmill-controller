@@ -15,37 +15,111 @@ export class AppComponent implements OnInit {
   status: TreadmillStatus | null = null;
   speedInput = 2.0;
 
+  isConnecting = false;
+  isSendingCommand = false;
+
+  constructor(private treadmill: TreadmillService) {
+    this.refresh();
+  }
+
   ngOnInit(): void {
     this.treadmill.connectToEvents();
 
-    // initial snapshot from HTTP
-    this.treadmill.getStatus().subscribe(s => this.status = s);
-
     this.treadmill.status$.subscribe(status => {
-      this.status = status;
+      if (status) {
+        this.status = status;
+
+        if (status.isConnected) {
+          this.speedInput = status.currentSpeedKmh;
+        }
+      }
     });
   }
 
-  constructor(private treadmill: TreadmillService) {
+  get isConnected(): boolean {
+    return !!this.status?.isConnected;
+  }
+
+  get isRunning(): boolean {
+    return !!this.status?.isRunning;
+  }
+
+  refresh(): void {
+    this.treadmill.getStatus().subscribe(s => {
+      this.status = s;
+      if (s.isConnected) {
+        this.speedInput = s.currentSpeedKmh;
+      }
+    });
   }
 
   onConnect(): void {
-    this.treadmill.connect().subscribe(s => this.status = s);
-  }
+    if (this.isConnecting || this.isConnected) return;
+    this.isConnecting = true;
 
-  onDisconnect(): void {
-    this.treadmill.disconnect().subscribe(s => this.status = s);
+    this.treadmill.connect().subscribe({
+      next: s => {
+        this.status = s;
+        if (s.isConnected) {
+          this.speedInput = s.currentSpeedKmh || this.speedInput;
+        }
+      },
+      error: err => {
+        console.error('Connect failed', err);
+      },
+      complete: () => {
+        this.isConnecting = false;
+      }
+    });
   }
 
   onStart(): void {
-    this.treadmill.start().subscribe(s => this.status = s);
+    if (!this.isConnected || this.isSendingCommand) return;
+    this.isSendingCommand = true;
+
+    this.treadmill.start().subscribe({
+      next: s => this.status = s,
+      error: err => console.error('Start failed', err),
+      complete: () => this.isSendingCommand = false
+    });
   }
 
   onStop(): void {
-    this.treadmill.stop().subscribe(s => this.status = s);
+    if (!this.isConnected || this.isSendingCommand) return;
+    this.isSendingCommand = true;
+
+    this.treadmill.stop().subscribe({
+      next: s => this.status = s,
+      error: err => console.error('Stop failed', err),
+      complete: () => this.isSendingCommand = false
+    });
   }
 
   onSetSpeed(): void {
-    this.treadmill.setSpeed(this.speedInput).subscribe(s => this.status = s);
+    if (!this.isConnected || this.isSendingCommand) return;
+    this.isSendingCommand = true;
+
+    this.treadmill.setSpeed(this.speedInput).subscribe({
+      next: s => this.status = s,
+      error: err => console.error('Set speed failed', err),
+      complete: () => this.isSendingCommand = false
+    });
+  }
+
+  formatTime(seconds: number | undefined): string {
+    if (seconds == null) return '00:00';
+    const s = Math.max(0, Math.floor(seconds));
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+
+    if (h > 0) {
+      return `${this.pad(h)}:${this.pad(m)}:${this.pad(sec)}`;
+    }
+    return `${this.pad(m)}:${this.pad(sec)}`;
+  }
+
+  private pad(n: number): string {
+    return n < 10 ? `0${n}` : `${n}`;
   }
 }

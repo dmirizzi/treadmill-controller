@@ -1,59 +1,69 @@
-# TreadmillUi
+# Treadmill Control
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.19.
+Custom control app for the **Kiddoza walking pad / LJJ-sports treadmill**.
 
-## Development server
+- Web UI (Angular, mobile-friendly) to:
+  - Connect to the treadmill
+  - Start/stop the belt
+  - Set speed
+  - See live stats (speed, time, distance, calories)
+- Backend (Python, FastAPI, Bleak) running on a **Linux home server** with Bluetooth.
+- Everything is packaged into **one Docker container** that serves both the API and the frontend.
 
-To start a local development server, run:
+You open the app from any device on your network (phone, laptop, tablet) and control the treadmill over Bluetooth via the home server.
 
-```bash
-ng serve
-```
+---
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+## Architecture Overview
 
-## Code scaffolding
+**Frontend**
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- `frontend/`
+- Angular standalone app
+- Built into static files (`dist/treadmill-ui/browser`) and served by the backend from `/`
 
-```bash
-ng generate component component-name
-```
+**Backend**
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+- `backend/`
+- `app.py` – FastAPI app
+- `treadmill_controller.py` – BLE logic using Bleak
+- Exposes:
+  - REST: `/api/status`, `/api/connect`, `/api/start`, `/api/stop`, `/api/speed`
+  - SSE: `/api/events` (server-sent events with live status updates)
+- Talks to treadmill via Bluetooth LE on the home server
 
-```bash
-ng generate --help
-```
+**Container**
 
-## Building
+- `Dockerfile`
+- Stage 1: build Angular frontend
+- Stage 2: install Python + backend, copy frontend into `./static`, run `uvicorn`
+- Needs access to host Bluetooth (`--privileged` + `/var/run/dbus` mount)
 
-To build the project run:
+**Deployment scripts**
 
-```bash
-ng build
-```
+- `deploy_all.sh` – build + deploy (non-interactive)
+- `deploy_and_attach.sh` – build + deploy + attach to logs
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+---
 
-## Running unit tests
+## Prerequisites
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+### On the home server (Linux)
 
-```bash
-ng test
-```
+- Docker (and optionally docker-compose, but not required)
+- Bluetooth stack (BlueZ):
+  - `bluetoothd` running
+  - `bluetoothctl` available
+- A working Bluetooth adapter (e.g. `hci0`) that can see your treadmill via `bluetoothctl scan on`
 
-## Running end-to-end tests
+### On your macOS dev machine
 
-For end-to-end (e2e) testing, run:
+- Docker Desktop
+- Node.js + npm (for local Angular dev, optional if you only deploy via Docker)
+- Python + venv (only needed if you want to run backend directly outside Docker)
+- A Docker context pointing at the home server, e.g.:
 
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+  ```bash
+  docker context create home \
+    --docker "host=ssh://[server url]"
+  docker context use home
