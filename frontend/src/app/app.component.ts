@@ -62,6 +62,7 @@ export class AppComponent implements OnInit {
       },
       error: err => {
         console.error('Connect failed', err);
+        this.isConnecting = false;
       },
       complete: () => {
         this.isConnecting = false;
