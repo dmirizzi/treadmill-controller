@@ -554,6 +554,7 @@ FodyWeavers.xsd
 *wwwroot/
 *.venv
 backend/static
+app/static
 
 # JetBrains Rider
 
