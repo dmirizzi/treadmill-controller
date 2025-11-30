@@ -247,6 +247,7 @@ class TreadmillController:
             status = self.get_status()
             loop.call_soon_threadsafe(self.status_queue.put_nowait, status)
 
+        self._is_running = self._current_speed_kmh > 0.0
         #logger.info("Notification from treadmill: %s\n", data.hex())
 
     async def _send_command(self, payload: bytes) -> None:
@@ -290,14 +291,11 @@ class TreadmillController:
         async with self._lock:
             await self._ensure_connected()
             await self._send_command(self._build_start_command())
-            self._is_running = True
 
     async def stop(self) -> None:
         async with self._lock:
             await self._ensure_connected()
             await self._send_command(self._build_stop_command())
-            self._is_running = False
-            self._current_speed_kmh = 0.0
 
     async def set_speed(self, speed_kmh: float) -> None:
         async with self._lock:
