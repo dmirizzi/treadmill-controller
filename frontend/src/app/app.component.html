@@ -1,4 +1,4 @@
-<div class="app-root">
+<div class="app-root" [class.app-root--dark]="themeMode === 'dark'">
   <!-- Transient overlay banner -->
   <div 
     class="banner-container" 
@@ -19,16 +19,33 @@
       <div class="subtitle">Home treadmill</div>
     </div>
 
-    <button
-      class="chip-button"
-      [class.chip--connected]="isConnected"
-      [disabled]="isConnecting || isConnected"
-      (click)="onConnect()">
-      <span class="chip-dot" *ngIf="isConnected"></span>
-      <span *ngIf="isConnected">Connected</span>
-      <span *ngIf="!isConnected && !isConnecting">Connect</span>
-      <span *ngIf="isConnecting">Connecting…</span>
-    </button>
+    <div class="header-controls">
+      <button
+        type="button"
+        class="theme-toggle"
+        (click)="toggleTheme()"
+        [attr.aria-label]="themeMode === 'light' ? 'Switch to dark mode' : 'Switch to light mode'">
+        <div class="theme-toggle-track">
+          <div
+            class="theme-toggle-knob"
+            [class.theme-toggle-knob--dark]="themeMode === 'dark'">
+            <span class="theme-toggle-icon" *ngIf="themeMode === 'light'">☾</span>
+            <span class="theme-toggle-icon" *ngIf="themeMode === 'dark'">☼</span>
+          </div>
+        </div>
+      </button>
+
+      <button
+        class="chip-button"
+        [class.chip--connected]="isConnected"
+        [disabled]="isConnecting || isConnected"
+        (click)="onConnect()">
+        <span class="chip-dot" *ngIf="isConnected"></span>
+        <span *ngIf="isConnected">Connected</span>
+        <span *ngIf="!isConnected && !isConnecting">Connect</span>
+        <span *ngIf="isConnecting">Connecting…</span>
+      </button>
+    </div>
   </header>
 
   <div class="mode-switch">

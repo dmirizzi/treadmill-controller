@@ -3,13 +3,33 @@
   height: 100%;
 }
 
-$app-bg: #f5f5f7;
-$app-text: #111827;
-$app-subtle: #6b7280;
-$app-border: #e5e7eb;
+/* --- Theme tokens --- */
+
+/* --- Theme tokens --- */
+
+$app-bg-light: #f5f5f7;
+$app-card-bg-light: #ffffff;
+
+$app-bg-dark: #050816;      // softer, iOS-ish background
+$app-card-bg-dark: #0b1120; // slightly lighter surface
+
+$app-border-light: #e5e7eb;
+$app-border-dark: #111827;  // subtle graphite border
+
+$app-text-light: #111827;
+$app-text-dark: #f9fafb;
+
+$app-subtle-light: #6b7280;
+$app-subtle-dark: #9ca3af;
+
 $app-accent: #2563eb;
-$app-accent-soft: #e0ebff;
+$app-accent-soft-light: #e0ebff;
+$app-accent-soft-dark: rgba(59, 130, 246, 0.18);
+
 $app-danger: #ef4444;
+
+
+/* Root container */
 
 .app-root {
   min-height: 100vh;
@@ -17,11 +37,103 @@ $app-danger: #ef4444;
   margin: 0 auto;
   padding: 0.75rem 1rem 1.5rem;
   box-sizing: border-box;
-  background: $app-bg;
-  color: $app-text;
+  background: $app-bg-light;
+  color: $app-text-light;
   font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   display: flex;
   flex-direction: column;
+}
+
+/* Dark mode overrides */
+
+.app-root--dark {
+  background: $app-bg-dark;
+  color: $app-text-dark;
+
+  .subtitle,
+  .connection-note,
+  .empty-card .empty-text,
+  .range-label,
+  .metric-label {
+    color: $app-subtle-dark;
+  }
+
+  .card,
+  .empty-card,
+  .metric-card {
+    background: $app-card-bg-dark;
+    border-color: $app-border-dark;
+  }
+
+  /* Header chip + mode switch look more “iOS” */
+
+  .chip-button {
+    background: $app-card-bg-dark;
+    border-color: $app-border-dark;
+    color: $app-text-dark;
+
+    &.chip--connected {
+      background: rgba(34, 197, 94, 0.16);
+      border-color: rgba(34, 197, 94, 0.6);
+      color: #bbf7d0;
+    }
+  }
+
+  .mode-switch {
+    background: #020617;
+    border-radius: 999px;
+  }
+
+  .mode-pill {
+    color: $app-subtle-dark;
+
+    &.mode-pill--active {
+      background: #f9fafb;
+      color: #111827;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  /* Buttons */
+
+  .btn--primary {
+    background: #3b82f6; // slightly lighter accent in dark
+    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.45);
+    color: #ffffff;
+  }
+
+  .btn--secondary {
+    background: rgba($app-danger, 0.18);
+    color: #fecaca;
+
+    &:hover:not(:disabled) {
+      background: rgba($app-danger, 0.25);
+    }
+  }
+
+  .btn--fullwidth {
+    background: $app-accent-soft-dark;
+    color: #e5edff;
+  }
+
+  /* Inputs */
+
+  input[type='number'] {
+    color: $app-text-dark;
+  }
+
+  .numeric-input {
+    background: #020617;
+    border-color: $app-border-dark;
+  }
+
+  /* Banner */
+
+  .banner-inner {
+    background: rgba(15, 23, 42, 0.96);
+    color: $app-text-dark;
+    border-color: rgba(148, 163, 184, 0.7);
+  }
 }
 
 /* Header */
@@ -47,19 +159,74 @@ $app-danger: #ef4444;
 
 .subtitle {
   font-size: 0.8rem;
-  color: $app-subtle;
+  color: $app-subtle-light;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Theme toggle */
+
+.theme-toggle {
+  border: none;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.theme-toggle-track {
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.35);
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  transition: background 0.18s ease;
+}
+
+.app-root--dark .theme-toggle-track {
+  background: rgba(31, 41, 55, 0.9);
+}
+
+.theme-toggle-knob {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: #0f172a;
+  transform: translateX(0);
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.35);
+}
+
+.theme-toggle-knob--dark {
+  transform: translateX(14px);
+  background: #0f172a;
+  color: #f9fafb;
+}
+
+.theme-toggle-icon {
+  line-height: 1;
 }
 
 /* Connect chip */
 
 .chip-button {
   border-radius: 999px;
-  border: 1px solid $app-border;
+  border: 1px solid $app-border-light;
   padding: 0.25rem 0.8rem;
   font-size: 0.8rem;
   font-weight: 500;
-  background: white;
-  color: $app-text;
+  background: #ffffff;
+  color: $app-text-light;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
@@ -110,10 +277,10 @@ $app-danger: #ef4444;
 }
 
 .empty-card {
-  background: white;
+  background: $app-card-bg-light;
   border-radius: 1.25rem;
   padding: 1.25rem 1.3rem;
-  border: 1px solid $app-border;
+  border: 1px solid $app-border-light;
   text-align: center;
   max-width: 360px;
 
@@ -125,10 +292,10 @@ $app-danger: #ef4444;
 
   .empty-text {
     font-size: 0.9rem;
-    color: $app-subtle;
+    color: $app-subtle-light;
 
     strong {
-      color: $app-text;
+      color: $app-text-light;
     }
   }
 }
@@ -136,10 +303,10 @@ $app-danger: #ef4444;
 /* Generic cards */
 
 .card {
-  background: white;
+  background: $app-card-bg-light;
   border-radius: 1.4rem;
   padding: 1rem 1.1rem;
-  border: 1px solid $app-border;
+  border: 1px solid $app-border-light;
 }
 
 .card--primary {
@@ -161,7 +328,7 @@ $app-danger: #ef4444;
 
 .range-label {
   font-size: 0.8rem;
-  color: $app-subtle;
+  color: $app-subtle-light;
 }
 
 /* Pills */
@@ -176,11 +343,41 @@ $app-danger: #ef4444;
   padding: 0.2rem 0.6rem;
   font-size: 0.75rem;
   background: #f3f4f6;
-  color: $app-subtle;
+  color: $app-subtle-light;
 
   &.pill--on {
     background: #e0f2fe;
     color: #0369a1;
+  }
+}
+
+/* Mode switch (Manual / HIIT) */
+
+.mode-switch {
+  display: inline-flex;
+  align-self: center;
+  margin-top: 0.25rem;
+  margin-bottom: 0.4rem;
+  padding: 0.12rem;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+
+.mode-pill {
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 0.25rem 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: $app-subtle-light;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+
+  &.mode-pill--active {
+    background: #ffffff;
+    color: $app-text-light;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
   }
 }
 
@@ -202,7 +399,7 @@ $app-danger: #ef4444;
 
 .speed-unit {
   font-size: 0.9rem;
-  color: $app-subtle;
+  color: $app-subtle-light;
 }
 
 /* Buttons */
@@ -233,11 +430,11 @@ $app-danger: #ef4444;
 
 .btn--primary {
   background: $app-accent;
-  color: white;
+  color: #ffffff;
   box-shadow: 0 8px 18px rgba(37, 99, 235, 0.35);
 
   &:hover:not(:disabled) {
-    background: darken($app-accent, 4%);
+    background: $app-accent;
   }
 }
 
@@ -253,7 +450,7 @@ $app-danger: #ef4444;
 .btn--fullwidth {
   width: 100%;
   margin-top: 0.6rem;
-  background: $app-accent-soft;
+  background: $app-accent-soft-light;
   color: $app-accent;
 }
 
@@ -271,7 +468,7 @@ $app-danger: #ef4444;
 
 .connection-note {
   font-size: 0.8rem;
-  color: $app-subtle;
+  color: $app-subtle-light;
 }
 
 /* Target speed input */
@@ -289,7 +486,7 @@ $app-danger: #ef4444;
   gap: 0.35rem;
   padding: 0.4rem 0.75rem;
   border-radius: 0.9rem;
-  border: 1px solid $app-border;
+  border: 1px solid $app-border-light;
   background: #f9fafb;
 
   input[type='number'] {
@@ -297,7 +494,7 @@ $app-danger: #ef4444;
     border: none;
     background: transparent;
     font-size: 1rem;
-    color: $app-text;
+    color: $app-text-light;
     outline: none;
     -moz-appearance: textfield;
 
@@ -314,7 +511,7 @@ $app-danger: #ef4444;
 
   .unit {
     font-size: 0.8rem;
-    color: $app-subtle;
+    color: $app-subtle-light;
   }
 }
 
@@ -332,10 +529,10 @@ input[type='range'] {
 }
 
 .metric-card {
-  background: white;
+  background: $app-card-bg-light;
   border-radius: 1.1rem;
   padding: 0.65rem 0.75rem;
-  border: 1px solid $app-border;
+  border: 1px solid $app-border-light;
 }
 
 .metric-card--muted {
@@ -344,7 +541,7 @@ input[type='range'] {
 
 .metric-label {
   font-size: 0.75rem;
-  color: $app-subtle;
+  color: $app-subtle-light;
   margin-bottom: 0.15rem;
 }
 
@@ -358,7 +555,7 @@ input[type='range'] {
 
 .metric-unit {
   font-size: 0.75rem;
-  color: $app-subtle;
+  color: $app-subtle-light;
 }
 
 /* --- Transient overlay banner --- */
@@ -370,12 +567,12 @@ input[type='range'] {
   right: 0;
   display: flex;
   justify-content: center;
-  z-index: 999; // above cards/header
-  pointer-events: none; // non-blocking for main UI
+  z-index: 999;
+  pointer-events: none;
 }
 
 .banner-inner {
-  pointer-events: auto; // clickable if you add actions later
+  pointer-events: auto;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -389,7 +586,7 @@ input[type='range'] {
   border: 1px solid rgba(148, 163, 184, 0.6);
   box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
 
-  color: $app-text;
+  color: $app-text-light;
 }
 
 .banner-inner--error {
@@ -405,7 +602,7 @@ input[type='range'] {
   align-items: center;
   justify-content: center;
   font-size: 0.7rem;
-  color: white;
+  color: #ffffff;
   background: $app-danger;
 }
 
@@ -414,98 +611,4 @@ input[type='range'] {
   text-overflow: ellipsis;
   overflow: hidden;
   max-width: 80vw;
-}
-
-/* --- Mode switcher --- */
-
-.mode-switch {
-  display: inline-flex;
-  align-self: center;
-  margin-top: 0.25rem;
-  margin-bottom: 0.4rem;
-  padding: 0.12rem;
-  border-radius: 999px;
-  background: #e5e7eb;
-}
-
-.mode-pill {
-  border: none;
-  background: transparent;
-  border-radius: 999px;
-  padding: 0.25rem 0.9rem;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: $app-subtle;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
-
-  &.mode-pill--active {
-    background: white;
-    color: $app-text;
-    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
-  }
-}
-
-
-/* --- HIIT control view --- */
-.hiit-timer {
-  text-align: left;
-  margin-top: 0.4rem;
-  margin-bottom: 0.6rem;
-}
-
-.hiit-time {
-  font-size: 2.1rem;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-}
-
-.hiit-subtime {
-  font-size: 0.8rem;
-  color: $app-subtle;
-}
-
-.hiit-speeds {
-  margin-bottom: 0.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.hiit-row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8rem;
-}
-
-.hiit-label {
-  color: $app-subtle;
-}
-
-.hiit-value {
-  font-weight: 500;
-}
-
-.hiit-presets {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  margin-top: 0.4rem;
-}
-
-.hiit-chip {
-  font-size: 0.8rem;
-  padding-inline: 0.9rem;
-}
-
-.hiit-chip--active {
-  background: $app-accent-soft;
-  border-color: rgba($app-accent, 0.4);
-  color: $app-accent;
-}
-
-.hiit-description {
-  margin-top: 0.5rem;
-  font-size: 0.8rem;
-  color: $app-subtle;
 }

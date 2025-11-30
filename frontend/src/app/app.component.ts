@@ -62,6 +62,9 @@ export class AppComponent implements OnInit {
   isConnecting = false;
   isSendingCommand = false;
 
+  // Theme
+  themeMode: 'light' | 'dark' = 'light';
+
   // Banner state
   bannerVisible = false;
   bannerMessage = '';
@@ -104,6 +107,10 @@ export class AppComponent implements OnInit {
 
   get isRunning(): boolean {
     return !!this.status?.isRunning;
+  }
+
+  toggleTheme(): void {
+    this.themeMode = this.themeMode === 'light' ? 'dark' : 'light';
   }
 
   refresh(): void {
