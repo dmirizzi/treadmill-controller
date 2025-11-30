@@ -31,102 +31,212 @@
     </button>
   </header>
 
+  <div class="mode-switch">
+    <button
+      class="mode-pill"
+      [class.mode-pill--active]="viewMode === 'manual'"
+      (click)="viewMode = 'manual'">
+      Manual
+    </button>
+
+    <button
+      class="mode-pill"
+      [class.mode-pill--active]="viewMode === 'hiit'"
+      (click)="viewMode = 'hiit'">
+      HIIT
+    </button>
+  </div>
+
   <!-- Content when we have status -->
   <main class="app-main" *ngIf="status as s; else emptyState">
-    <!-- Primary card: speed + start/stop -->
-    <section class="card card--primary">
-      <div class="card-header">
-        <div class="card-title">Current speed</div>
-        <div class="status-pills">
-          <span
-            class="pill"
-            [class.pill--on]="isRunning">
-            {{ isRunning ? 'Running' : 'Stopped' }}
-          </span>
-        </div>
-      </div>
+    <ng-container [ngSwitch]="viewMode">
 
-      <div class="speed-display">
-        <span class="speed-value">
-          {{ s.currentSpeedKmh | number:'1.1-1' }}
-        </span>
-        <span class="speed-unit">km/h</span>
-      </div>
+      <!-----------------------------------
+        Manual control view
+      ------------------------------------->
+      <ng-container *ngSwitchCase="'manual'">
+        <!-- Primary card: speed + start/stop -->
+        <section class="card card--primary">
+          <div class="card-header">
+            <div class="card-title">Current speed</div>
+            <div class="status-pills">
+              <span
+                class="pill"
+                [class.pill--on]="isRunning">
+                {{ isRunning ? 'Running' : 'Stopped' }}
+              </span>
+            </div>
+          </div>
 
-      <div class="primary-actions">
-        <button
-          class="btn btn--primary"
-          (click)="onStart()"
-          [disabled]="!isConnected || isRunning || isSendingCommand">
-          Start
-        </button>
+          <div class="speed-display">
+            <span class="speed-value">
+              {{ s.currentSpeedKmh | number:'1.1-1' }}
+            </span>
+            <span class="speed-unit">km/h</span>
+          </div>
 
-        <button
-          class="btn btn--secondary"
-          (click)="onStop()"
-          [disabled]="!isConnected || !isRunning || isSendingCommand">
-          Stop
-        </button>
-      </div>
+          <div class="primary-actions">
+            <button
+              class="btn btn--primary"
+              (click)="onStart()"
+              [disabled]="!isConnected || isRunning || isSendingCommand">
+              Start
+            </button>
 
-      <div class="connection-note" *ngIf="!isConnected">
-        Connect your treadmill to control speed and see live stats.
-      </div>
-    </section>
+            <button
+              class="btn btn--secondary"
+              (click)="onStop()"
+              [disabled]="!isConnected || !isRunning || isSendingCommand">
+              Stop
+            </button>
+          </div>
 
-    <!-- Target speed card -->
-    <section class="card">
-      <div class="card-header">
-        <div class="card-title">Target speed</div>
-        <div class="range-label">
-          {{ s.minSpeedKmh | number:'1.1-1' }} – {{ s.maxSpeedKmh | number:'1.1-1' }} km/h
-        </div>
-      </div>
+          <div class="connection-note" *ngIf="!isConnected">
+            Connect your treadmill to control speed and see live stats.
+          </div>
+        </section>
 
-      <div class="target-speed-input">
-        <div class="numeric-input">
-          <input
-            type="number"
-            [(ngModel)]="speedInput"
-            [min]="s.minSpeedKmh"
-            [max]="s.maxSpeedKmh"
-            step="0.1"
-            [disabled]="!isConnected" />
-          <span class="unit">km/h</span>
-        </div>
+        <!-- Target speed card -->
+        <section class="card">
+          <div class="card-header">
+            <div class="card-title">Target speed</div>
+            <div class="range-label">
+              {{ s.minSpeedKmh | number:'1.1-1' }} – {{ s.maxSpeedKmh | number:'1.1-1' }} km/h
+            </div>
+          </div>
 
-        <input
-          type="range"
-          [(ngModel)]="speedInput"
-          [min]="s.minSpeedKmh"
-          [max]="s.maxSpeedKmh"
-          step="0.1"
-          [disabled]="!isConnected" />
+          <div class="target-speed-input">
+            <div class="numeric-input">
+              <input
+                type="number"
+                [(ngModel)]="speedInput"
+                [min]="s.minSpeedKmh"
+                [max]="s.maxSpeedKmh"
+                step="0.1"
+                [disabled]="!isConnected" />
+              <span class="unit">km/h</span>
+            </div>
 
-        <button
-          class="btn btn--fullwidth"
-          (click)="onSetSpeed()"
-          [disabled]="!isConnected || isSendingCommand">
-          Set speed
-        </button>
+            <input
+              type="range"
+              [(ngModel)]="speedInput"
+              [min]="s.minSpeedKmh"
+              [max]="s.maxSpeedKmh"
+              step="0.1"
+              [disabled]="!isConnected" />
 
-        <div class="primary-actions inc-dec-speed-buttons">
-          <button
-            class="btn btn--primary"
-            (click)="onChangeSpeed(0.1)"
-            [disabled]="!isConnected || !isRunning || isSendingCommand">
-            Increase Speed
-          </button>
+            <button
+              class="btn btn--fullwidth"
+              (click)="onSetSpeed()"
+              [disabled]="!isConnected || isSendingCommand">
+              Set speed
+            </button>
 
-          <button
-            class="btn btn--secondary"
-            (click)="onChangeSpeed(-0.1)"
-            [disabled]="!isConnected || !isRunning || isSendingCommand">
-            Decrease Speed
-          </button>
-        </div>
-      </div>
-    </section>
+            <div class="primary-actions inc-dec-speed-buttons">
+              <button
+                class="btn btn--primary"
+                (click)="onChangeSpeed(0.1)"
+                [disabled]="!isConnected || !isRunning || isSendingCommand">
+                Increase Speed
+              </button>
+
+              <button
+                class="btn btn--secondary"
+                (click)="onChangeSpeed(-0.1)"
+                [disabled]="!isConnected || !isRunning || isSendingCommand">
+                Decrease Speed
+              </button>
+            </div>
+          </div>
+        </section>
+
+      </ng-container>
+
+      <!-----------------------------------
+        HIIT control view
+      ------------------------------------->
+      <ng-container *ngSwitchCase="'hiit'">
+
+        <!-- Primary card: HIIT workout control -->
+        <section class="card card--primary">
+          <div class="card-header">
+            <div class="card-title">HIIT workout</div>
+            <span class="pill" [class.pill--on]="isHiitRunning">
+              {{ currentPhaseLabel }} <!-- e.g. 'Warmup', 'High', 'Recover' -->
+            </span>
+          </div>
+
+          <div class="hiit-timer">
+            <div class="hiit-time">{{ formatTime(hiitRemainingSeconds) }}</div>
+            <div class="hiit-subtime">
+              {{ hiitCurrentIndex + 1 }} / {{ hiitTotalSegments }} segments
+            </div>
+          </div>
+
+          <div class="hiit-speeds">
+            <div class="hiit-row">
+              <span class="hiit-label">Current target</span>
+              <span class="hiit-value">{{ hiitCurrentSpeedKmh | number:'1.1-1' }} km/h</span>
+            </div>
+            <div class="hiit-row" *ngIf="hiitNextSpeedKmh != null">
+              <span class="hiit-label">Next</span>
+              <span class="hiit-value">{{ hiitNextSpeedKmh | number:'1.1-1' }} km/h</span>
+            </div>
+          </div>
+
+          <div class="primary-actions">
+            <button
+              class="btn btn--primary"
+              (click)="onHiitStart()"
+              [disabled]="!isConnected || isHiitRunning || isSendingCommand">
+              Start HIIT
+            </button>
+
+            <button
+              class="btn btn--secondary"
+              (click)="onHiitStop()"
+              [disabled]="!isConnected || !isHiitRunning || isSendingCommand">
+              Stop
+            </button>
+          </div>
+        </section>
+
+        <!-- HIIT presets card -->
+        <section class="card">
+          <div class="card-header">
+            <div class="card-title">HIIT plans</div>
+          </div>
+
+          <div class="hiit-presets">
+            <button
+              class="chip-button hiit-chip"
+              [class.hiit-chip--active]="selectedHiitPreset === 'beginner'"
+              (click)="selectHiitPreset('beginner')">
+              Beginner · 10 min
+            </button>
+
+            <button
+              class="chip-button hiit-chip"
+              [class.hiit-chip--active]="selectedHiitPreset === 'classic'"
+              (click)="selectHiitPreset('classic')">
+              6×(1 min high / 1 min easy)
+            </button>
+
+            <button
+              class="chip-button hiit-chip"
+              [class.hiit-chip--active]="selectedHiitPreset === 'custom'"
+              (click)="selectHiitPreset('custom')">
+              Custom
+            </button>
+          </div>
+
+          <div class="hiit-description">
+            {{ hiitDescription }}
+          </div>
+        </section>
+
+      </ng-container>
+    </ng-container>
 
     <!-- Metrics grid -->
     <section class="metrics-grid">
@@ -158,7 +268,7 @@
           <span class="metric-unit">km/h</span>
         </div>
       </article>
-    </section>
+    </section>    
   </main>
 
   <!-- Empty / not yet connected state -->

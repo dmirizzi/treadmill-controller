@@ -415,3 +415,97 @@ input[type='range'] {
   overflow: hidden;
   max-width: 80vw;
 }
+
+/* --- Mode switcher --- */
+
+.mode-switch {
+  display: inline-flex;
+  align-self: center;
+  margin-top: 0.25rem;
+  margin-bottom: 0.4rem;
+  padding: 0.12rem;
+  border-radius: 999px;
+  background: #e5e7eb;
+}
+
+.mode-pill {
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 0.25rem 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: $app-subtle;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+
+  &.mode-pill--active {
+    background: white;
+    color: $app-text;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
+  }
+}
+
+
+/* --- HIIT control view --- */
+.hiit-timer {
+  text-align: left;
+  margin-top: 0.4rem;
+  margin-bottom: 0.6rem;
+}
+
+.hiit-time {
+  font-size: 2.1rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.hiit-subtime {
+  font-size: 0.8rem;
+  color: $app-subtle;
+}
+
+.hiit-speeds {
+  margin-bottom: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.hiit-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+}
+
+.hiit-label {
+  color: $app-subtle;
+}
+
+.hiit-value {
+  font-weight: 500;
+}
+
+.hiit-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.hiit-chip {
+  font-size: 0.8rem;
+  padding-inline: 0.9rem;
+}
+
+.hiit-chip--active {
+  background: $app-accent-soft;
+  border-color: rgba($app-accent, 0.4);
+  color: $app-accent;
+}
+
+.hiit-description {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  color: $app-subtle;
+}

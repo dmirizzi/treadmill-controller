@@ -2,4 +2,5 @@
 - [x] Detect disconnect due to inactivity or manual shutoff and update UI
 - [x] UI error visualization (e.g. failed connection)
 - [ ] Add dark mode
-- [ ] HIIT mode
+- [x] HIIT mode
+- [ ] Disable controls while treadmill is ramping up/down
