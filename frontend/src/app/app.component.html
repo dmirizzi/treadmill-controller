@@ -1,4 +1,17 @@
 <div class="app-root">
+  <!-- Transient overlay banner -->
+  <div 
+    class="banner-container" 
+    *ngIf="bannerVisible"
+    [@bannerAnim]>
+    <div
+      class="banner-inner"
+      [class.banner-inner--error]="bannerType === 'error'">
+      <span class="banner-icon" *ngIf="bannerType === 'error'">!</span>
+      <span class="banner-text">{{ bannerMessage }}</span>
+    </div>
+  </div>
+
   <!-- Top bar -->
   <header class="app-header">
     <div class="title-group">

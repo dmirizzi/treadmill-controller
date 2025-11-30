@@ -2,13 +2,47 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TreadmillService, TreadmillStatus } from './services/treadmill.service';
+import {
+  trigger,
+  transition,
+  style,
+  animate
+} from '@angular/animations';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
+  animations: [
+    trigger('bannerAnim', [
+      // Enter: slide down + fade in
+      transition(':enter', [
+        style({
+          opacity: 0,
+          transform: 'translateY(-12px)'
+        }),
+        animate(
+          '220ms cubic-bezier(0.22, 0.61, 0.36, 1)',
+          style({
+            opacity: 1,
+            transform: 'translateY(0)'
+          })
+        )
+      ]),
+      // Leave: slight lift + fade out
+      transition(':leave', [
+        animate(
+          '180ms cubic-bezier(0.4, 0.0, 0.2, 1)',
+          style({
+            opacity: 0,
+            transform: 'translateY(-8px)'
+          })
+        )
+      ])
+    ])
+  ]  
 })
 export class AppComponent implements OnInit {
   title = 'Treadmill';
@@ -17,6 +51,12 @@ export class AppComponent implements OnInit {
 
   isConnecting = false;
   isSendingCommand = false;
+
+  // Banner state
+  bannerVisible = false;
+  bannerMessage = '';
+  bannerType: 'info' | 'error' = 'info';
+  private bannerTimeoutId: any = null;  
 
   constructor(private treadmill: TreadmillService) {
     this.refresh();
@@ -63,6 +103,7 @@ export class AppComponent implements OnInit {
       error: err => {
         console.error('Connect failed', err);
         this.isConnecting = false;
+        this.showErrorBanner('Unable to connect to treadmill. Make sure it is on and nearby.');
       },
       complete: () => {
         this.isConnecting = false;
@@ -115,6 +156,30 @@ export class AppComponent implements OnInit {
       complete: () => this.isSendingCommand = false
     });
   }
+
+  private showBanner(
+    message: string,
+    type: 'info' | 'error' = 'info',
+    durationMs = 3000
+  ): void {
+    this.bannerMessage = message;
+    this.bannerType = type;
+    this.bannerVisible = true;
+
+    // Reset previous timeout if one exists
+    if (this.bannerTimeoutId) {
+      clearTimeout(this.bannerTimeoutId);
+    }
+
+    this.bannerTimeoutId = setTimeout(() => {
+      this.bannerVisible = false;
+      this.bannerTimeoutId = null;
+    }, durationMs);
+  }
+
+  private showErrorBanner(message: string): void {
+    this.showBanner(message, 'error');
+  }  
 
   formatTime(seconds: number | undefined): string {
     if (seconds == null) return '00:00';
