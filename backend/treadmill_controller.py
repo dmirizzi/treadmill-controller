@@ -29,11 +29,22 @@ class TreadmillController:
     CONTROL_CHAR_UUID = "0000ffb2-0000-1000-8000-00805f9b34fb"
     NOTIFY_CHAR_UUID  = "0000ffb1-0000-1000-8000-00805f9b34fb"
 
-    def __init__(self) -> None:
+    NOTIFICATION_SPEED_RANGE = 0x90
+    NOTIFICATION_TYPE_SPEED_SET = 0x91
+    NOTIFICATION_TYPE_STATUS_UPDATE = 0x95
+
+    def __init__(self, status_queue: Optional[asyncio.Queue] = None) -> None:        
         self._client: Optional[BleakClient] = None
         self._lock = asyncio.Lock()
         self._is_running = False
         self._current_speed_kmh = 0.0
+        self._elapsed_time_seconds = 0
+        self._burned_calories = 0
+        self._total_distance_km = 0.0
+        self.min_speed_kmh = 0.0
+        self.max_speed_kmh = 0.0
+
+        self.status_queue = status_queue
 
     # -------- internal helpers --------
 
@@ -185,11 +196,58 @@ class TreadmillController:
         await loop.run_in_executor(None, _do_reset)
         logger.info("Bluetooth adapter reset sequence finished")
 
-    def _notification_handler(self, _char_handle: int, data: bytearray) -> None:
+    def _notification_handler(self, _char_handle: int, data: bytearray) -> None:     
         # TODO: decode FFB1 notifications if you want live speed/metrics.
         # For now we just ignore or could log:
         # print("Notification:", data.hex())
-        pass
+
+        notification_type = data[2]
+
+        if notification_type == self.NOTIFICATION_TYPE_SPEED_SET:
+            self._current_speed_kmh = data[6] / 10.0
+            logger.info("Treadmill speed set notification: speed=%.1f km/h", self._current_speed_kmh)
+
+        if notification_type == self.NOTIFICATION_TYPE_STATUS_UPDATE:
+            seconds_hi = data[3] 
+            seconds_lo = data[4] 
+            self._elapsed_time_seconds = (seconds_hi << 8) | seconds_lo
+
+            flags = data[5]
+
+            distance_lo = data[6]
+            distance_hi = data[7]
+            self._total_distance_km = ((distance_hi << 8) | distance_lo) / 100.0
+
+            calories_lo = data[8]
+            calories_hi = data[9]
+            self._burned_calories = (calories_hi << 8) | calories_lo
+
+            logger.info(
+                "Treadmill workout update: time=%d sec, distance=%.2f km, calories=%d kcal, flags=0x%02X",
+                self._elapsed_time_seconds,
+                self._total_distance_km,
+                self._burned_calories,
+                flags,
+            )
+
+        if notification_type == 0x92:
+            self._current_speed_kmh = data[6] / 10.0
+            logger.info("Treadmill current speed notification: speed=%.1f km/h", self._current_speed_kmh)
+
+        if notification_type == self.NOTIFICATION_SPEED_RANGE:
+            self.min_speed_kmh = data[5] / 10.0
+            self.max_speed_kmh = data[6] / 10.0
+            logger.info("Treadmill speed range notification: lowest=%.1f km/h, highest=%.1f km/h",
+                        self.min_speed_kmh,
+                        self.max_speed_kmh)
+        
+        if self.status_queue is not None:
+            # Push updated status to the queue for SSE
+            loop = asyncio.get_running_loop()
+            status = self.get_status()
+            loop.call_soon_threadsafe(self.status_queue.put_nowait, status)
+
+        #logger.info("Notification from treadmill: %s\n", data.hex())
 
     async def _send_command(self, payload: bytes) -> None:
         if not self._client or not self._client.is_connected:
@@ -261,6 +319,11 @@ class TreadmillController:
             isConnected=bool(self._client and self._client.is_connected),
             isRunning=self._is_running,
             currentSpeedKmh=self._current_speed_kmh,
+            elapsedTimeSeconds=self._elapsed_time_seconds,
+            burnedCalories=self._burned_calories,
+            totalDistanceKm=self._total_distance_km,
+            minSpeedKmh=self.min_speed_kmh,
+            maxSpeedKmh=self.max_speed_kmh,
         )
 
     # -------- command builders (matching what we used before) --------
@@ -277,23 +340,7 @@ class TreadmillController:
 
     @staticmethod
     def _build_speed_command(kmh: float) -> bytes:
-        # From your captures:
-        #   speedCode ≈ speed_kmh * 10, with +1 offset at low end
-        # and checksum = speedCode + 0x22
-        #
-        # Examples:
-        #   1.1 km/h -> speedCode 0x0B, checksum 0x2D
-        #   1.5 km/h -> speedCode 0x0F, checksum 0x31
-        #   2.0 km/h -> speedCode 0x14, checksum 0x36
-        #   4.0 km/h -> speedCode 0x28, checksum 0x4A
-
-        tenths = int(round(kmh * 10.0))
-
-        if tenths <= 14:
-            speed_code = tenths + 1
-        else:
-            speed_code = tenths
-
+        speed_code = int(round(kmh * 10.0))
         speed_code_byte = speed_code & 0xFF
         checksum = (speed_code_byte + 0x22) & 0xFF
 

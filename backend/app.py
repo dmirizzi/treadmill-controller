@@ -1,3 +1,5 @@
+import asyncio
+import json
 import logging
 from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, HTTPException, Request
@@ -20,14 +22,18 @@ if not logger.handlers:
     logger.addHandler(handler)
 
 # -------- FastAPI app setup --------
-controller = TreadmillController()
-
 app = FastAPI()
 
+# SSE status queue
+status_queue: asyncio.Queue[TreadmillStatus] = asyncio.Queue()
+
+controller = TreadmillController(status_queue=status_queue)
+
 # Log each request and exceptions
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.exceptions import HTTPException as FastAPIHTTPException
 
+# Middleware to log requests and responses
 @app.middleware("http")
 async def log_requests(request: Request, call_next):
     logger.info(f"--> {request.method} {request.url.path}")
@@ -64,11 +70,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+# -------- API Endpoints --------
 @app.get("/api/status", response_model=TreadmillStatus)
 async def get_status() -> TreadmillStatus:
     return controller.get_status()
 
+@app.get("/api/events")
+async def sse_events():
+    async def event_generator():
+        while True:
+            status: TreadmillStatus = await status_queue.get()
+            # SSE format: one event = "data: ...\n\n"
+            payload = status.model_dump()  # or .dict() depending on your Pydantic version
+            yield f"data: {json.dumps(payload)}\n\n"
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 @app.post("/api/connect", response_model=TreadmillStatus)
 async def connect() -> TreadmillStatus:

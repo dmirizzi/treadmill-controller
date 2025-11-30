@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TreadmillService, TreadmillStatus } from './services/treadmill.service';
@@ -10,17 +10,23 @@ import { TreadmillService, TreadmillStatus } from './services/treadmill.service'
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
-  title = 'Treadmill UI';
+export class AppComponent implements OnInit {
+  title = 'Treadmill';
   status: TreadmillStatus | null = null;
   speedInput = 2.0;
 
-  constructor(private treadmill: TreadmillService) {
-    this.refresh();
+  ngOnInit(): void {
+    this.treadmill.connectToEvents();
+
+    // initial snapshot from HTTP
+    this.treadmill.getStatus().subscribe(s => this.status = s);
+
+    this.treadmill.status$.subscribe(status => {
+      this.status = status;
+    });
   }
 
-  refresh(): void {
-    this.treadmill.getStatus().subscribe(s => this.status = s);
+  constructor(private treadmill: TreadmillService) {
   }
 
   onConnect(): void {

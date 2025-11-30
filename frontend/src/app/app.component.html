@@ -16,12 +16,14 @@
     </div>
   </div>
 
-  <button (click)="refresh()">Refresh status</button>
-
   <div class="status" *ngIf="status as s" style="margin-top: 1rem;">
     <h2>Status</h2>
     <p>Connected: {{ s.isConnected }}</p>
     <p>Running: {{ s.isRunning }}</p>
     <p>Current Speed: {{ s.currentSpeedKmh }} km/h</p>
+    <p>Elapsed Time: {{ s.elapsedTimeSeconds }} seconds</p>
+    <p>Burned Calories: {{ s.burnedCalories }} kcal</p>
+    <p>Total Distance: {{ s.totalDistanceKm }} km</p>
+    <p>Speed Range: {{ s.minSpeedKmh }} km/h - {{ s.maxSpeedKmh }} km/h</p>
   </div>
 </div>

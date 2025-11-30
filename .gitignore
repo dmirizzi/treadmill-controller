@@ -553,6 +553,7 @@ FodyWeavers.xsd
 *.DS_Store
 *wwwroot/
 *.venv
+backend/static
 
 # JetBrains Rider
 
