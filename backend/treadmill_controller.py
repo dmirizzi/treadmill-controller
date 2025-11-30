@@ -214,8 +214,8 @@ class TreadmillController:
 
             flags = data[5]
 
+            distance_hi = data[5] & 0x0F
             distance_lo = data[6]
-            distance_hi = data[7]
             self._total_distance_km = ((distance_hi << 8) | distance_lo) / 100.0
 
             calories_lo = data[8]
@@ -248,7 +248,7 @@ class TreadmillController:
             loop.call_soon_threadsafe(self.status_queue.put_nowait, status)
 
         self._is_running = self._current_speed_kmh > 0.0
-        #logger.info("Notification from treadmill: %s\n", data.hex())
+        logger.info("Notification from treadmill: %s\n", data.hex())
 
     async def _send_command(self, payload: bytes) -> None:
         if not self._client or not self._client.is_connected:
