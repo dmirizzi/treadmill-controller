@@ -28,10 +28,6 @@ export class AppComponent implements OnInit {
     this.treadmill.status$.subscribe(status => {
       if (status) {
         this.status = status;
-
-        if (status.isConnected) {
-          this.speedInput = status.currentSpeedKmh;
-        }
       }
     });
   }
@@ -93,6 +89,19 @@ export class AppComponent implements OnInit {
       error: err => console.error('Stop failed', err),
       complete: () => this.isSendingCommand = false
     });
+  }
+
+  onChangeSpeed(delta: number): void {
+
+    if (!this.isConnected || this.isSendingCommand) return;
+    this.isSendingCommand = true;
+
+    const current = this.status?.currentSpeedKmh ?? this.speedInput ?? 0;
+    this.treadmill.setSpeed(current + delta).subscribe({
+      next: s => this.status = s,
+      error: err => console.error('Set speed failed', err),
+      complete: () => this.isSendingCommand = false
+    });    
   }
 
   onSetSpeed(): void {

@@ -96,6 +96,22 @@
           [disabled]="!isConnected || isSendingCommand">
           Set speed
         </button>
+
+        <div class="primary-actions inc-dec-speed-buttons">
+          <button
+            class="btn btn--primary"
+            (click)="onChangeSpeed(0.1)"
+            [disabled]="!isConnected || !isRunning || isSendingCommand">
+            Increase Speed
+          </button>
+
+          <button
+            class="btn btn--secondary"
+            (click)="onChangeSpeed(-0.1)"
+            [disabled]="!isConnected || !isRunning || isSendingCommand">
+            Decrease Speed
+          </button>
+        </div>
       </div>
     </section>
 
