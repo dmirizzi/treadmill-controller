@@ -117,8 +117,14 @@ export class AppComponent implements OnInit {
 
     this.treadmill.start().subscribe({
       next: s => this.status = s,
-      error: err => console.error('Start failed', err),
-      complete: () => this.isSendingCommand = false
+      error: err => {
+        console.error('Start failed', err);
+        this.showErrorBanner('Could not start treadmill.');
+        this.isSendingCommand = false;
+      },
+      complete: () => {
+        this.isSendingCommand = false;
+      }
     });
   }
 
@@ -128,22 +134,33 @@ export class AppComponent implements OnInit {
 
     this.treadmill.stop().subscribe({
       next: s => this.status = s,
-      error: err => console.error('Stop failed', err),
-      complete: () => this.isSendingCommand = false
+      error: err => {
+        console.error('Stop failed', err);
+        this.showErrorBanner('Could not stop treadmill.');
+        this.isSendingCommand = false;
+      },
+      complete: () => {
+        this.isSendingCommand = false;
+      }
     });
   }
 
   onChangeSpeed(delta: number): void {
-
     if (!this.isConnected || this.isSendingCommand) return;
     this.isSendingCommand = true;
 
     const current = this.status?.currentSpeedKmh ?? this.speedInput ?? 0;
     this.treadmill.setSpeed(current + delta).subscribe({
       next: s => this.status = s,
-      error: err => console.error('Set speed failed', err),
-      complete: () => this.isSendingCommand = false
-    });    
+      error: err => {
+        console.error('Set speed (delta) failed', err);
+        this.showErrorBanner('Could not adjust speed.');
+        this.isSendingCommand = false;
+      },
+      complete: () => {
+        this.isSendingCommand = false;
+      }
+    });
   }
 
   onSetSpeed(): void {
@@ -152,8 +169,14 @@ export class AppComponent implements OnInit {
 
     this.treadmill.setSpeed(this.speedInput).subscribe({
       next: s => this.status = s,
-      error: err => console.error('Set speed failed', err),
-      complete: () => this.isSendingCommand = false
+      error: err => {
+        console.error('Set speed failed', err);
+        this.showErrorBanner('Could not set speed.');
+        this.isSendingCommand = false;
+      },
+      complete: () => {
+        this.isSendingCommand = false;
+      }
     });
   }
 

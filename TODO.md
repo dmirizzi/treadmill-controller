@@ -1,3 +1,5 @@
 - [ ] Add some heartbeat poll/request to treadmill to keep awake while app is running
 - [x] Detect disconnect due to inactivity or manual shutoff and update UI
 - [x] UI error visualization (e.g. failed connection)
+- [ ] Add dark mode
+- [ ] HIIT mode
