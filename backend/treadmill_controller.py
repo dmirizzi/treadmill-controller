@@ -178,29 +178,11 @@ class TreadmillController:
                     "Error powering on adapter via bluetoothctl: %s", e.stderr.strip()
                 )
 
-            # Option B (alternative): hciconfig hci0 reset
-            # Uncomment if you prefer this route or bluetoothctl is unreliable:
-            # logger.info("Resetting Bluetooth adapter via hciconfig hci0 reset")
-            # try:
-            #     subprocess.run(
-            #         ["hciconfig", "hci0", "reset"],
-            #         check=True,
-            #         stdout=subprocess.PIPE,
-            #         stderr=subprocess.PIPE,
-            #         text=True,
-            #     )
-            # except subprocess.CalledProcessError as e:
-            #     logger.warning("Error resetting adapter via hciconfig: %s", e.stderr.strip())
-
         # Run blocking operations in a thread so we don't block the event loop
         await loop.run_in_executor(None, _do_reset)
         logger.info("Bluetooth adapter reset sequence finished")
 
     def _notification_handler(self, _char_handle: int, data: bytearray) -> None:     
-        # TODO: decode FFB1 notifications if you want live speed/metrics.
-        # For now we just ignore or could log:
-        # print("Notification:", data.hex())
-
         notification_type = data[2]
 
         if notification_type == self.NOTIFICATION_TYPE_SPEED_SET:
@@ -248,7 +230,7 @@ class TreadmillController:
             loop.call_soon_threadsafe(self.status_queue.put_nowait, status)
 
         self._is_running = self._current_speed_kmh > 0.0
-        logger.info("Notification from treadmill: %s\n", data.hex())
+        logger.debug("Notification from treadmill: %s\n", data.hex())
 
     async def _send_command(self, payload: bytes) -> None:
         if not self._client or not self._client.is_connected:
@@ -302,10 +284,10 @@ class TreadmillController:
             await self._ensure_connected()
 
             # Clamp for safety (adjust per your treadmill’s range)
-            if speed_kmh < 1.0:
-                speed_kmh = 1.0
-            if speed_kmh > 6.0:
-                speed_kmh = 6.0
+            if speed_kmh < self._min_speed_kmh:
+                speed_kmh = self._min_speed_kmh
+            if speed_kmh > self._max_speed_kmh:
+                speed_kmh = self._max_speed_kmh
 
             cmd = self._build_speed_command(speed_kmh)
             await self._send_command(cmd)

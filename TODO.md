@@ -1,0 +1,3 @@
+- [ ] Add some heartbeat poll/request to treadmill to keep awake while app is running
+- [ ] Detect disconnect due to inactivity or manual shutoff and update UI
+- [ ] UI error visualization (e.g. failed connection)
