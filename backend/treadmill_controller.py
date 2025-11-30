@@ -41,8 +41,8 @@ class TreadmillController:
         self._elapsed_time_seconds = 0
         self._burned_calories = 0
         self._total_distance_km = 0.0
-        self.min_speed_kmh = 0.0
-        self.max_speed_kmh = 0.0
+        self._min_speed_kmh = 0.0
+        self._max_speed_kmh = 0.0
 
         self.status_queue = status_queue
 
@@ -217,11 +217,11 @@ class TreadmillController:
             logger.info("Treadmill current speed notification: speed=%.1f km/h", self._current_speed_kmh)
 
         if notification_type == self.NOTIFICATION_SPEED_RANGE:
-            self.min_speed_kmh = data[5] / 10.0
-            self.max_speed_kmh = data[6] / 10.0
+            self._min_speed_kmh = data[5] / 10.0
+            self._max_speed_kmh = data[6] / 10.0
             logger.info("Treadmill speed range notification: lowest=%.1f km/h, highest=%.1f km/h",
-                        self.min_speed_kmh,
-                        self.max_speed_kmh)
+                        self._min_speed_kmh,
+                        self._max_speed_kmh)
         
         if self.status_queue is not None:
             # Push updated status to the queue for SSE
@@ -302,8 +302,8 @@ class TreadmillController:
             elapsedTimeSeconds=self._elapsed_time_seconds,
             burnedCalories=self._burned_calories,
             totalDistanceKm=self._total_distance_km,
-            minSpeedKmh=self.min_speed_kmh,
-            maxSpeedKmh=self.max_speed_kmh,
+            minSpeedKmh=self._min_speed_kmh,
+            maxSpeedKmh=self._max_speed_kmh,
         )
 
     # -------- command builders (matching what we used before) --------
