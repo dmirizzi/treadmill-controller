@@ -5,16 +5,14 @@
 
 /* --- Theme tokens --- */
 
-/* --- Theme tokens --- */
-
 $app-bg-light: #f5f5f7;
 $app-card-bg-light: #ffffff;
 
-$app-bg-dark: #050816;      // softer, iOS-ish background
-$app-card-bg-dark: #0b1120; // slightly lighter surface
-
+$app-bg-dark: #020617;              // main background
+$app-card-bg-dark: #0b1120;         // regular cards
+$app-card-elevated-dark: #111827;   // more elevated cards (metrics)
 $app-border-light: #e5e7eb;
-$app-border-dark: #111827;  // subtle graphite border
+$app-border-dark: #1f2937;          // slightly lighter border for contrast
 
 $app-text-light: #111827;
 $app-text-dark: #f9fafb;
@@ -27,7 +25,6 @@ $app-accent-soft-light: #e0ebff;
 $app-accent-soft-dark: rgba(59, 130, 246, 0.18);
 
 $app-danger: #ef4444;
-
 
 /* Root container */
 
@@ -58,14 +55,34 @@ $app-danger: #ef4444;
     color: $app-subtle-dark;
   }
 
+  /* Surfaces */
+
   .card,
-  .empty-card,
-  .metric-card {
+  .empty-card {
     background: $app-card-bg-dark;
     border-color: $app-border-dark;
+    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.55);
   }
 
-  /* Header chip + mode switch look more “iOS” */
+  .metric-card {
+    background: $app-card-elevated-dark;   // a bit lighter → more contrast
+    border-color: $app-border-dark;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+  }
+
+  .metric-card--muted {
+    opacity: 1; // don’t dim in dark mode
+  }
+
+  .metric-value {
+    color: $app-text-dark;
+  }
+
+  .metric-unit {
+    color: $app-subtle-dark;
+  }
+
+  /* Header chip + mode switch */
 
   .chip-button {
     background: $app-card-bg-dark;
@@ -73,8 +90,8 @@ $app-danger: #ef4444;
     color: $app-text-dark;
 
     &.chip--connected {
-      background: rgba(34, 197, 94, 0.16);
-      border-color: rgba(34, 197, 94, 0.6);
+      background: rgba(34, 197, 94, 0.18);
+      border-color: rgba(34, 197, 94, 0.7);
       color: #bbf7d0;
     }
   }
@@ -90,24 +107,24 @@ $app-danger: #ef4444;
     &.mode-pill--active {
       background: #f9fafb;
       color: #111827;
-      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
     }
   }
 
   /* Buttons */
 
   .btn--primary {
-    background: #3b82f6; // slightly lighter accent in dark
-    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.45);
+    background: #3b82f6;
+    box-shadow: 0 8px 22px rgba(59, 130, 246, 0.55);
     color: #ffffff;
   }
 
   .btn--secondary {
-    background: rgba($app-danger, 0.18);
+    background: rgba($app-danger, 0.22);
     color: #fecaca;
 
     &:hover:not(:disabled) {
-      background: rgba($app-danger, 0.25);
+      background: rgba($app-danger, 0.3);
     }
   }
 
@@ -611,4 +628,87 @@ input[type='range'] {
   text-overflow: ellipsis;
   overflow: hidden;
   max-width: 80vw;
+}
+
+/* HIIT layout */
+
+.hiit-card {
+  /* slightly more breathing room than manual card */
+  padding-top: 1.1rem;
+  padding-bottom: 1.15rem;
+
+  .card-header {
+    margin-bottom: 0.75rem;
+  }
+}
+
+.hiit-timer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-bottom: 0.6rem;
+}
+
+.hiit-time {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+
+.hiit-subtime {
+  font-size: 0.85rem;
+  color: $app-subtle-light;
+}
+
+.hiit-speeds {
+  margin-bottom: 0.8rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.9rem;
+  background: #f9fafb;
+}
+
+.hiit-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.85rem;
+
+  &:not(:last-child) {
+    margin-bottom: 0.25rem;
+  }
+}
+
+.hiit-label {
+  color: $app-subtle-light;
+}
+
+.hiit-value {
+  font-weight: 500;
+}
+
+.hiit-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.1rem;
+  margin-bottom: 0.45rem;
+}
+
+.hiit-chip {
+  padding: 0.25rem 0.85rem;
+  font-size: 0.8rem;
+  background: #f9fafb;
+  border-radius: 999px;
+  border-color: transparent;
+}
+
+.hiit-chip--active {
+  background: $app-accent-soft-light;
+  color: $app-accent;
+}
+
+.hiit-description {
+  margin-top: 0.2rem;
+  font-size: 0.9rem;
+  color: $app-subtle-light;
+  line-height: 1.4;
 }
