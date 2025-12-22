@@ -213,6 +213,13 @@ export class AppComponent implements OnInit {
     });
   }
 
+  onShortcutSpeed(value: number): void {
+    // update local input and apply immediately when connected
+    this.speedInput = value;
+    if (!this.isConnected || this.isSendingCommand) return;
+    this.onSetSpeed();
+  }
+
   selectHiitPreset(preset: HiitPresetId): void {
     if (this.isHiitRunning) {
       // Optional: prevent changing preset mid-workout

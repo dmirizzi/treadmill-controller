@@ -134,6 +134,17 @@
               <span class="unit">km/h</span>
             </div>
 
+            <div class="speed-shortcuts">
+              <button
+                *ngFor="let preset of [3, 3.5, 4, 5, 6]"
+                type="button"
+                class="chip-button speed-shortcut"
+                (click)="onShortcutSpeed(preset)"
+                [disabled]="!isConnected || isSendingCommand">
+                {{ preset }} km/h
+              </button>
+            </div>
+
             <input
               type="range"
               [(ngModel)]="speedInput"

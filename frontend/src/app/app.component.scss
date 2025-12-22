@@ -497,6 +497,28 @@ $app-danger: #ef4444;
   margin-top: 0.4rem;
 }
 
+.speed-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.1rem 0 0.1rem 0;
+}
+
+.speed-shortcut {
+  padding: 0.28rem 0.7rem;
+  font-size: 0.9rem;
+  border-radius: 999px;
+  background: #f9fafb;
+  border: 1px solid $app-border-light;
+  color: $app-text-light;
+  box-shadow: 0 6px 14px rgba(15,23,42,0.06);
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
 .numeric-input {
   display: flex;
   align-items: center;
